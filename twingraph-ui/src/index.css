@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Vis.js Network Styles */
+.vis-network {
+  width: 100%;
+  height: 100%;
+}
+
+.vis-tooltip {
+  position: absolute;
+  visibility: hidden;
+  padding: 10px;
+  white-space: nowrap;
+  font-family: verdana;
+  font-size: 14px;
+  color: #000000;
+  background-color: #f5f4ed;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  border: 1px solid #808074;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Custom styles for graph nodes */
+.graph-node-running {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Pulse once animation for component editor */
+.animate-pulse-once {
+  animation: pulseOnce 0.5s ease-out;
+}
+
+@keyframes pulseOnce {
+  0% {
+    transform: scaleY(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleY(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Code editor styles */
+.monaco-editor {
+  min-height: 400px;
+}
+
+/* Graph visualization container */
+.graph-visualization-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Node inspector scrollbar */
+.node-inspector::-webkit-scrollbar {
+  width: 6px;
+}
+
+.node-inspector::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.node-inspector::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.node-inspector::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

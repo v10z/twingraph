@@ -1,0 +1,506 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles - Tomorrow Night Blue Theme */
+:root {
+  --bg-primary: #002451;
+  --bg-secondary: #001733;
+  --bg-tertiary: #003666;
+  --bg-hover: #003f7a;
+  --bg-active: #00509d;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #bbdaff;
+  --text-tertiary: #7aa6da;
+  --text-muted: #5a7ca7;
+  
+  --accent-primary: #6699cc;
+  --accent-secondary: #82aaff;
+  --accent-success: #99c794;
+  --accent-warning: #ffcc66;
+  --accent-error: #f97b58;
+  
+  --border-primary: #7aa6da20;
+  --border-secondary: #7aa6da40;
+  --border-active: #6699cc;
+  
+  /* VSCode compatibility mappings */
+  --vscode-editor-background: var(--bg-primary);
+  --vscode-sideBar-background: var(--bg-secondary);
+  --vscode-activityBar-background: var(--bg-tertiary);
+  --vscode-statusBar-background: var(--accent-primary);
+  --vscode-titleBar-background: var(--bg-tertiary);
+  --vscode-editor-foreground: var(--text-secondary);
+  --vscode-sideBar-foreground: var(--text-secondary);
+  --vscode-border: var(--border-primary);
+  --vscode-focusBorder: var(--accent-primary);
+  --vscode-list-hoverBackground: var(--bg-hover);
+  --vscode-list-activeSelectionBackground: var(--bg-active);
+  --vscode-button-background: var(--accent-primary);
+  --vscode-button-hoverBackground: var(--accent-secondary);
+  --vscode-input-background: var(--bg-tertiary);
+  --vscode-dropdown-background: var(--bg-tertiary);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 13px;
+}
+
+/* Scrollbar Styling - VSCode Style */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(121, 121, 121, 0.4);
+  border: 3px solid transparent;
+  border-radius: 7px;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 100, 100, 0.7);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 10px rgba(122, 166, 218, 0.5);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(122, 166, 218, 0.8), 0 0 30px rgba(122, 166, 218, 0.6);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Utility Classes - VSCode Style */
+.vscode-panel {
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-border);
+}
+
+.vscode-sidebar {
+  background: var(--vscode-sideBar-background);
+  color: var(--vscode-sideBar-foreground);
+}
+
+.vscode-activity-bar {
+  background: var(--bg-tertiary);
+  border-right: 1px solid var(--border-primary);
+}
+
+.vscode-status-bar {
+  background: var(--accent-primary) !important;
+  border-top: none;
+  user-select: none;
+}
+
+.vscode-app {
+  user-select: none;
+}
+
+.vscode-tab {
+  background: #2d2d30;
+  border-right: 1px solid #252526;
+  color: #969696;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.vscode-tab.active {
+  background: var(--vscode-editor-background);
+  color: white;
+  border-bottom: 1px solid transparent;
+}
+
+.vscode-explorer-item {
+  padding: 0 8px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--vscode-sideBar-foreground);
+}
+
+.vscode-explorer-item:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+/* Tomorrow Night Blue styled panels */
+.vscode-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+}
+
+.vscode-input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.vscode-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(102, 153, 204, 0.2);
+}
+
+.vscode-button {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.vscode-button:hover {
+  background: var(--accent-secondary);
+  box-shadow: 0 2px 8px rgba(102, 153, 204, 0.3);
+}
+
+.vscode-button:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+/* Legacy electron-style classes for compatibility */
+.electron-button-primary {
+  @apply vscode-button;
+}
+
+.electron-card {
+  @apply vscode-card;
+}
+
+.neon-glow-blue {
+  text-shadow: 
+    0 0 10px rgba(102, 153, 204, 0.5),
+    0 0 20px rgba(102, 153, 204, 0.3);
+}
+
+.neon-border {
+  position: relative;
+  border: 2px solid transparent;
+  background: linear-gradient(var(--color-bg-primary), var(--color-bg-primary)) padding-box,
+              linear-gradient(135deg, #6699cc, #7aa6da) border-box;
+}
+
+.gradient-bg {
+  background: #0d1117;
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(122, 166, 218, 0) 0%,
+    rgba(122, 166, 218, 0.2) 20%,
+    rgba(122, 166, 218, 0.5) 60%,
+    rgba(122, 166, 218, 0)
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+.hover-glow {
+  transition: all 0.2s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* Component-specific animations */
+.card-enter {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.node-pulse {
+  animation: pulse 2s infinite;
+}
+
+.edge-flow {
+  stroke-dasharray: 5 5;
+  animation: edgeFlow 1s linear infinite;
+}
+
+@keyframes edgeFlow {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* Tomorrow Night Blue specific utilities */
+.glass {
+  background: rgba(0, 23, 51, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-primary);
+}
+
+.glass-dark {
+  background: rgba(0, 14, 31, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-primary);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(102, 153, 204, 0.3);
+  border-color: var(--accent-primary);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Focus styles - VSCode */
+.focus-ring {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+*:focus-visible {
+  @apply focus-ring;
+}
+
+/* VSCode List Items */
+.vscode-list-item {
+  padding: 4px 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.vscode-list-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.vscode-list-item.selected {
+  background: var(--bg-active);
+  color: white;
+}
+
+/* VSCode Breadcrumb */
+.vscode-breadcrumb {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  background: #252526;
+  border-bottom: 1px solid var(--vscode-border);
+  font-size: 13px;
+  color: #969696;
+}
+
+.vscode-breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vscode-breadcrumb-separator {
+  margin: 0 4px;
+  color: #616161;
+}
+
+/* Selection */
+::selection {
+  background: rgba(102, 153, 204, 0.3);
+  color: white;
+}
+
+/* Loading states */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(122, 166, 218, 0.1) 0%,
+    rgba(122, 166, 218, 0.2) 50%,
+    rgba(122, 166, 218, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* Vis.js Network Styles */
+.vis-network {
+  width: 100%;
+  height: 100%;
+}
+
+.vis-tooltip {
+  position: absolute;
+  visibility: hidden;
+  padding: 10px;
+  white-space: nowrap;
+  font-family: verdana;
+  font-size: 14px;
+  color: #000000;
+  background-color: #f5f4ed;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  border: 1px solid #808074;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Custom styles for graph nodes */
+.graph-node-running {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Code editor styles */
+.monaco-editor {
+  min-height: 400px;
+}
+
+/* Graph visualization container */
+.graph-visualization-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Node inspector scrollbar */
+.node-inspector::-webkit-scrollbar {
+  width: 6px;
+}
+
+.node-inspector::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.node-inspector::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.node-inspector::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

@@ -1,0 +1,92 @@
+# Example plugin manifest for scientific computing tools
+name: scientific_computing
+version: 1.0.0
+description: Scientific computing executors and components for TwinGraph
+author: TwinGraph Community
+
+# Custom executors
+executors:
+  - name: matlab
+    type: docker
+    image: mathworks/matlab:latest
+    languages: 
+      - matlab
+      - m
+    environment:
+      MATLAB_LICENSE: ${MATLAB_LICENSE_KEY}
+    
+  - name: octave
+    type: docker
+    image: gnuoctave/octave:latest
+    languages:
+      - octave
+      - m
+    
+  - name: r_stats
+    type: docker
+    image: rocker/tidyverse:latest
+    languages:
+      - r
+      - R
+    
+  - name: fortran
+    type: docker
+    image: gcc:latest
+    languages:
+      - fortran
+      - f90
+      - f95
+    commands:
+      compile: "gfortran -O3 {code_file} -o {output_file}"
+      execute: "./{output_file}"
+
+# Pre-built components
+components:
+  monte_carlo_simulation:
+    description: Run Monte Carlo simulations
+    platform: gpu
+    inputs:
+      - name: num_simulations
+        type: integer
+        default: 1000000
+      - name: parameters
+        type: object
+    outputs:
+      - name: results
+        type: array
+      - name: statistics
+        type: object
+  
+  differential_equations:
+    description: Solve differential equations numerically
+    platform: cpu
+    inputs:
+      - name: equation
+        type: string
+      - name: initial_conditions
+        type: array
+      - name: time_span
+        type: array
+    outputs:
+      - name: solution
+        type: array
+      - name: time_points
+        type: array
+  
+  signal_processing:
+    description: Digital signal processing operations
+    platform: local
+    operations:
+      - fft
+      - filter_design
+      - spectral_analysis
+      - wavelet_transform
+
+# Initialization commands
+init_commands:
+  - echo "Initializing scientific computing plugin"
+  - mkdir -p /tmp/twingraph/scientific_computing
+
+# Cleanup commands
+cleanup_commands:
+  - rm -rf /tmp/twingraph/scientific_computing

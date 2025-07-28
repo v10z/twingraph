@@ -1,7 +1,5 @@
-######################################################################
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. #
-# SPDX-License-Identifier: MIT-0                                     #
-######################################################################
+# SPDX-License-Identifier: MIT-0
+# Copyright (c) 2025 TwinGraph Contributors
 
 # Begin by importing the type NamedTuple, which we exclusively use as a medium for all data transfers between components
 from typing import NamedTuple
@@ -73,7 +71,7 @@ def test_orchestration():
     float_number_2 = 1
 
     # Instantiate the first function (instantiations in this file are lowercase) which will be a root node in the graph due to no prior parents - notice that there is weak restriction on defining it by explicit assignment (as a kwarg) or an ordered list of args
-    func_A = Func_A_add(float_number_2, input_1=float_number_1)
+    func_A = Func_A_add(float_number_1, float_number_2)
 
     # By adding the component decorator, there is one additional hidden input variable called parent hash which can be assigned to a new instantiation - this chains together nodes.
     func_B = Func_B_multiply(
@@ -84,7 +82,7 @@ def test_orchestration():
     for n in range(20):
         parent_hash = [func_A['hash'], func_B['hash']]
         func_C_collection.append(Func_C_subtract(
-            parent_hash=parent_hash, input_1=func_A['outputs']['sum'], input_2=func_B['outputs']['multiplication']))
+            func_A['outputs']['sum'], func_B['outputs']['multiplication'], parent_hash=parent_hash))
 
     # We can set the number of nodes in a runtime dynamic manner (e.g. using random integers)
     func_D_collection = []

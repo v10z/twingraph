@@ -1,0 +1,407 @@
+{
+  "id": "genai-rag-workflow",
+  "name": "GenAI RAG Workflow",
+  "description": "Retrieval-Augmented Generation pipeline for document Q&A",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "component",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "label": "Load Documents",
+        "componentType": {
+          "id": "file-reader",
+          "name": "File Reader",
+          "category": "data",
+          "supportedLanguages": ["python"]
+        },
+        "language": "python",
+        "code": "def process(inputs):\n    import os\n    import glob\n    from pathlib import Path\n    \n    source_path = inputs.get('source_path', './sample_docs')\n    file_types = inputs.get('file_types', ['*.txt', '*.md'])\n    \n    documents = []\n    \n    for file_type in file_types:\n        pattern = os.path.join(source_path, '**', file_type)\n        files = glob.glob(pattern, recursive=True)\n        \n        for file_path in files:\n            with open(file_path, 'r', encoding='utf-8') as f:\n                content = f.read()\n                documents.append({\n                    'path': file_path,\n                    'content': content,\n                    'metadata': {\n                        'source': file_path,\n                        'type': Path(file_path).suffix\n                    }\n                })\n    \n    return {\n        'documents': documents,\n        'count': len(documents)\n    }",
+        "inputs": [
+          {
+            "id": "source_path",
+            "name": "source_path",
+            "type": "string",
+            "required": true
+          },
+          {
+            "id": "file_types",
+            "name": "file_types",
+            "type": "array",
+            "required": false
+          }
+        ],
+        "outputs": [
+          {
+            "id": "documents",
+            "name": "documents",
+            "type": "array"
+          },
+          {
+            "id": "count",
+            "name": "count",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-2",
+      "type": "component",
+      "position": { "x": 300, "y": 100 },
+      "data": {
+        "label": "Split Text",
+        "componentType": {
+          "id": "data-transform",
+          "name": "Data Transform",
+          "category": "data",
+          "supportedLanguages": ["python"]
+        },
+        "language": "python",
+        "code": "def process(inputs):\n    documents = inputs['documents']\n    chunk_size = inputs.get('chunk_size', 1000)\n    chunk_overlap = inputs.get('chunk_overlap', 200)\n    \n    chunks = []\n    \n    for doc in documents:\n        text = doc['content']\n        metadata = doc['metadata']\n        \n        for i in range(0, len(text), chunk_size - chunk_overlap):\n            chunk = text[i:i + chunk_size]\n            chunks.append({\n                'text': chunk,\n                'metadata': {\n                    **metadata,\n                    'chunk_index': i // (chunk_size - chunk_overlap),\n                    'chunk_start': i,\n                    'chunk_end': min(i + chunk_size, len(text))\n                }\n            })\n    \n    return {\n        'chunks': chunks,\n        'total_chunks': len(chunks)\n    }",
+        "inputs": [
+          {
+            "id": "documents",
+            "name": "documents",
+            "type": "array",
+            "required": true
+          },
+          {
+            "id": "chunk_size",
+            "name": "chunk_size",
+            "type": "number",
+            "default": 1000
+          },
+          {
+            "id": "chunk_overlap",
+            "name": "chunk_overlap",
+            "type": "number",
+            "default": 200
+          }
+        ],
+        "outputs": [
+          {
+            "id": "chunks",
+            "name": "chunks",
+            "type": "array"
+          },
+          {
+            "id": "total_chunks",
+            "name": "total_chunks",
+            "type": "number"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "component",
+      "position": { "x": 500, "y": 100 },
+      "data": {
+        "label": "Generate Embeddings",
+        "componentType": {
+          "id": "embedding",
+          "name": "Text Embedding",
+          "category": "genai",
+          "supportedLanguages": ["python"]
+        },
+        "language": "python",
+        "code": "def process(inputs):\n    chunks = inputs['chunks']\n    model_name = inputs.get('model_name', 'sentence-transformers/all-MiniLM-L6-v2')\n    \n    try:\n        from sentence_transformers import SentenceTransformer\n        model = SentenceTransformer(model_name)\n        \n        texts = [chunk['text'] for chunk in chunks]\n        vectors = model.encode(texts)\n        \n        embeddings = []\n        for chunk, vector in zip(chunks, vectors):\n            embeddings.append({\n                'text': chunk['text'],\n                'embedding': vector.tolist(),\n                'metadata': chunk['metadata']\n            })\n        \n        return {\n            'embeddings': embeddings,\n            'dimension': len(vectors[0])\n        }\n    except ImportError:\n        # Fallback for demo\n        import random\n        embeddings = []\n        for chunk in chunks:\n            embedding = [random.random() for _ in range(384)]\n            embeddings.append({\n                'text': chunk['text'],\n                'embedding': embedding,\n                'metadata': chunk['metadata']\n            })\n        \n        return {\n            'embeddings': embeddings,\n            'dimension': 384\n        }",
+        "inputs": [
+          {
+            "id": "chunks",
+            "name": "chunks",
+            "type": "array",
+            "required": true
+          },
+          {
+            "id": "model_name",
+            "name": "model_name",
+            "type": "string",
+            "default": "sentence-transformers/all-MiniLM-L6-v2"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "embeddings",
+            "name": "embeddings",
+            "type": "array"
+          },
+          {
+            "id": "dimension",
+            "name": "dimension",
+            "type": "number"
+          }
+        ],
+        "config": {
+          "compute": {
+            "platform": "docker",
+            "resources": {
+              "memory": "2G"
+            }
+          },
+          "timeout": 300
+        }
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "component",
+      "position": { "x": 700, "y": 100 },
+      "data": {
+        "label": "Store Vectors",
+        "componentType": {
+          "id": "vector-search",
+          "name": "Vector Search",
+          "category": "genai",
+          "supportedLanguages": ["python"]
+        },
+        "language": "python",
+        "code": "def process(inputs):\n    embeddings = inputs['embeddings']\n    collection_name = inputs.get('collection_name', 'twingraph_demo')\n    \n    # In a real implementation, store in ChromaDB or similar\n    # For demo, we'll simulate storage\n    \n    return {\n        'stored_count': len(embeddings),\n        'collection': collection_name\n    }",
+        "inputs": [
+          {
+            "id": "embeddings",
+            "name": "embeddings",
+            "type": "array",
+            "required": true
+          },
+          {
+            "id": "collection_name",
+            "name": "collection_name",
+            "type": "string",
+            "default": "twingraph_demo"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "stored_count",
+            "name": "stored_count",
+            "type": "number"
+          },
+          {
+            "id": "collection",
+            "name": "collection",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "component",
+      "position": { "x": 400, "y": 300 },
+      "data": {
+        "label": "User Query",
+        "componentType": {
+          "id": "input",
+          "name": "Input",
+          "category": "io",
+          "supportedLanguages": ["python"]
+        },
+        "language": "python",
+        "code": "def process(inputs):\n    return {\n        'query': inputs.get('query', 'What is TwinGraph?')\n    }",
+        "inputs": [
+          {
+            "id": "query",
+            "name": "query",
+            "type": "string",
+            "default": "What is TwinGraph?"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "query",
+            "name": "query",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "component",
+      "position": { "x": 600, "y": 300 },
+      "data": {
+        "label": "Retrieve Context",
+        "componentType": {
+          "id": "vector-search",
+          "name": "Vector Search",
+          "category": "genai",
+          "supportedLanguages": ["python"]
+        },
+        "language": "python",
+        "code": "def process(inputs):\n    query = inputs['query']\n    collection_name = inputs['collection']\n    top_k = inputs.get('top_k', 5)\n    \n    # For demo, return mock results\n    mock_results = [\n        {\n            'text': 'TwinGraph is a Python-based orchestration framework...',\n            'score': 0.95,\n            'metadata': {'source': 'README.md'}\n        },\n        {\n            'text': 'It supports GenAI workflows with LLM integration...',\n            'score': 0.89,\n            'metadata': {'source': 'docs/features.md'}\n        }\n    ]\n    \n    return {\n        'results': mock_results[:top_k],\n        'query': query\n    }",
+        "inputs": [
+          {
+            "id": "query",
+            "name": "query",
+            "type": "string",
+            "required": true
+          },
+          {
+            "id": "collection",
+            "name": "collection",
+            "type": "string",
+            "required": true
+          },
+          {
+            "id": "top_k",
+            "name": "top_k",
+            "type": "number",
+            "default": 5
+          }
+        ],
+        "outputs": [
+          {
+            "id": "results",
+            "name": "results",
+            "type": "array"
+          },
+          {
+            "id": "query",
+            "name": "query",
+            "type": "string"
+          }
+        ],
+        "config": {
+          "retry": {
+            "enabled": true,
+            "maxAttempts": 3,
+            "backoff": "exponential"
+          }
+        }
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "component",
+      "position": { "x": 800, "y": 300 },
+      "data": {
+        "label": "Generate Response",
+        "componentType": {
+          "id": "llm-prompt",
+          "name": "LLM Prompt",
+          "category": "genai",
+          "supportedLanguages": ["python"]
+        },
+        "language": "python",
+        "code": "def process(inputs):\n    query = inputs['query']\n    context = inputs['context']\n    model = inputs.get('model', 'gpt-3.5-turbo')\n    temperature = inputs.get('temperature', 0.7)\n    \n    # For demo, return a mock response\n    mock_response = (\n        f\"Based on the context provided, here's what I found about '{query}':\\n\\n\"\n        f\"TwinGraph is a modern orchestration platform that enables you to build \"\n        f\"and execute complex AI workflows. It provides visual editing, \"\n        f\"multi-language support, and seamless integration with various AI models \"\n        f\"and services.\\n\\n\"\n        f\"Key features include:\\n\"\n        f\"- Visual workflow editor\\n\"\n        f\"- Multi-language component support\\n\"\n        f\"- Real-time execution monitoring\\n\"\n        f\"- Built-in error handling and retries\"\n    )\n    \n    return {\n        'response': mock_response,\n        'model_used': 'mock-model',\n        'tokens_used': 100\n    }",
+        "inputs": [
+          {
+            "id": "query",
+            "name": "query",
+            "type": "string",
+            "required": true
+          },
+          {
+            "id": "context",
+            "name": "context",
+            "type": "array",
+            "required": true
+          },
+          {
+            "id": "model",
+            "name": "model",
+            "type": "string",
+            "default": "gpt-3.5-turbo"
+          },
+          {
+            "id": "temperature",
+            "name": "temperature",
+            "type": "number",
+            "default": 0.7
+          }
+        ],
+        "outputs": [
+          {
+            "id": "response",
+            "name": "response",
+            "type": "string"
+          },
+          {
+            "id": "model_used",
+            "name": "model_used",
+            "type": "string"
+          },
+          {
+            "id": "tokens_used",
+            "name": "tokens_used",
+            "type": "number"
+          }
+        ],
+        "config": {
+          "compute": {
+            "platform": "docker"
+          },
+          "timeout": 180,
+          "retry": {
+            "enabled": true,
+            "maxAttempts": 2,
+            "backoff": "exponential"
+          },
+          "environment": {
+            "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+          }
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "node-1",
+      "target": "node-2",
+      "sourceHandle": "documents",
+      "targetHandle": "documents"
+    },
+    {
+      "id": "edge-2",
+      "source": "node-2",
+      "target": "node-3",
+      "sourceHandle": "chunks",
+      "targetHandle": "chunks"
+    },
+    {
+      "id": "edge-3",
+      "source": "node-3",
+      "target": "node-4",
+      "sourceHandle": "embeddings",
+      "targetHandle": "embeddings"
+    },
+    {
+      "id": "edge-4",
+      "source": "node-4",
+      "target": "node-6",
+      "sourceHandle": "collection",
+      "targetHandle": "collection"
+    },
+    {
+      "id": "edge-5",
+      "source": "node-5",
+      "target": "node-6",
+      "sourceHandle": "query",
+      "targetHandle": "query"
+    },
+    {
+      "id": "edge-6",
+      "source": "node-5",
+      "target": "node-7",
+      "sourceHandle": "query",
+      "targetHandle": "query"
+    },
+    {
+      "id": "edge-7",
+      "source": "node-6",
+      "target": "node-7",
+      "sourceHandle": "results",
+      "targetHandle": "context"
+    }
+  ],
+  "metadata": {
+    "created": "2024-01-27T12:00:00Z",
+    "modified": "2024-01-27T12:00:00Z",
+    "author": "TwinGraph Team",
+    "version": "2.0.0",
+    "tags": ["genai", "rag", "llm", "embeddings"]
+  }
+}

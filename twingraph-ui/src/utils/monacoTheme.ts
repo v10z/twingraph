@@ -1,0 +1,36 @@
+import { editor } from 'monaco-editor';
+
+export const tomorrowNightBlueTheme: editor.IStandaloneThemeData = {
+  base: 'vs-dark',
+  inherit: true,
+  rules: [
+    { token: 'comment', foreground: '7285b7' },
+    { token: 'keyword', foreground: 'ff9da4' },
+    { token: 'string', foreground: 'd1f1a9' },
+    { token: 'number', foreground: 'ffc58f' },
+    { token: 'type', foreground: 'ffeaa7' },
+    { token: 'function', foreground: 'bbdaff' },
+    { token: 'variable', foreground: 'ffffff' },
+    { token: 'constant', foreground: 'ffc58f' },
+    { token: 'parameter', foreground: 'ffffff' },
+    { token: 'property', foreground: '99c794' },
+    { token: 'punctuation', foreground: 'ffffff' },
+    { token: 'operator', foreground: '99c794' },
+  ],
+  colors: {
+    'editor.background': '#002451',
+    'editor.foreground': '#ffffff',
+    'editor.lineHighlightBackground': '#003666',
+    'editor.selectionBackground': '#00509d',
+    'editor.inactiveSelectionBackground': '#003666',
+    'editorCursor.foreground': '#ffffff',
+    'editorWhitespace.foreground': '#7aa6da40',
+    'editorIndentGuide.background': '#7aa6da20',
+    'editorIndentGuide.activeBackground': '#7aa6da40',
+    'editor.selectionHighlightBackground': '#00509d50',
+    'editorLineNumber.foreground': '#7aa6da',
+    'editorLineNumber.activeForeground': '#bbdaff',
+    'editorBracketMatch.background': '#7aa6da40',
+    'editorBracketMatch.border': '#7aa6da',
+  },
+};

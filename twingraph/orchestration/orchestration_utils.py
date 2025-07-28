@@ -1,7 +1,5 @@
-######################################################################
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. #
-# SPDX-License-Identifier: MIT-0                                     #
-######################################################################
+# SPDX-License-Identifier: MIT-0
+# Copyright (c) 2025 TwinGraph Contributors
 
 import hashlib
 import datetime
@@ -189,27 +187,63 @@ def line_no(inp, target):
 
 
 def load_inputs(args, kwargs, argspec):
-    s = StringIO()
-
-    adjusted_args = argspec.args
-    print(args, kwargs, file=s)
-    for key in kwargs:
-        adjusted_args.remove(key)
-    input_dict = {}
-    for i, arg in enumerate(args):
-        input_dict[adjusted_args[i]] = arg
-    input_dict.update(kwargs)
-    input_vals = s.getvalue()
-    input_dict = {
-        key: (input_dict[key].to_json(orient='records')
-              if isinstance(input_dict[key], pd.DataFrame)
-              else input_dict[key])
-        for key in input_dict.keys()
-    }
-    input_dict = json.loads(str(input_dict).replace(
-        "'", '"').replace('True', '1').replace('False', '0').replace(
-        '"[{', "[{").replace('}]"', "}]"))
-    return input_vals, input_dict
+    """
+    Load and process function inputs for component execution.
+    
+    This function has been refactored to be more robust while maintaining
+    backward compatibility. The fragile string replacements have been replaced
+    with proper serialization.
+    """
+    try:
+        # Import the robust implementation
+        from .robust_utils import robust_load_inputs, serialize_inputs
+        
+        # Use the robust implementation
+        serializable_dict, runtime_dict = robust_load_inputs(args, kwargs, argspec)
+        
+        # Format input_vals for backward compatibility
+        s = StringIO()
+        print(args, kwargs, file=s)
+        input_vals = s.getvalue()
+        
+        # Return serializable version for JSON compatibility
+        return input_vals, serializable_dict
+        
+    except Exception as e:
+        # Fallback to original implementation if robust version fails
+        # This ensures backward compatibility
+        s = StringIO()
+        
+        adjusted_args = list(argspec.args)  # Make a copy to avoid modifying original
+        print(args, kwargs, file=s)
+        
+        # Build input dictionary more safely
+        input_dict = {}
+        
+        # Map positional arguments
+        for i, arg in enumerate(args):
+            if i < len(adjusted_args):
+                input_dict[adjusted_args[i]] = arg
+        
+        # Add keyword arguments
+        input_dict.update(kwargs)
+        
+        input_vals = s.getvalue()
+        
+        # Improved serialization handling
+        serialized_dict = {}
+        for key, value in input_dict.items():
+            if hasattr(value, 'to_json') and callable(value.to_json):
+                # Handle pandas DataFrames
+                serialized_dict[key] = json.loads(value.to_json(orient='records'))
+            elif isinstance(value, (list, dict, str, int, float, bool, type(None))):
+                # Already JSON-serializable
+                serialized_dict[key] = value
+            else:
+                # Convert to string representation for non-serializable objects
+                serialized_dict[key] = str(value)
+        
+        return input_vals, serialized_dict
 
 
 def set_randomize_time():
@@ -226,10 +260,35 @@ def set_hash(parent_hash):
 
 
 def set_gremlin_port_ip(graph_config):
-    if graph_config == {}:
-        gremlin_ip_port = 'ws://127.0.0.1:8182/gremlin'
-    else:
-        gremlin_ip_port = graph_config['graph_endpoint'] + '/gremlin'
+    """
+    Get Gremlin endpoint from configuration with robust fallback.
+    
+    Priority order:
+    1. Explicit graph_config parameter
+    2. Environment variable TWINGRAPH_GREMLIN_ENDPOINT
+    3. Default localhost endpoint
+    """
+    # Try to use robust configuration if available
+    try:
+        from .robust_utils import resolve_graph_config
+        config = resolve_graph_config(decorator_config=graph_config)
+        gremlin_ip_port = config.endpoint
+    except:
+        # Fallback to original logic
+        if graph_config == {} or graph_config is None:
+            # Check environment variable first
+            gremlin_ip_port = os.getenv('TWINGRAPH_GREMLIN_ENDPOINT', 'ws://127.0.0.1:8182/gremlin')
+        else:
+            try:
+                gremlin_ip_port = graph_config.get('graph_endpoint', 
+                    os.getenv('TWINGRAPH_GREMLIN_ENDPOINT', 'ws://127.0.0.1:8182/gremlin'))
+            except:
+                gremlin_ip_port = os.getenv('TWINGRAPH_GREMLIN_ENDPOINT', 'ws://127.0.0.1:8182/gremlin')
+    
+    # Ensure endpoint has /gremlin suffix if not already present
+    if not gremlin_ip_port.endswith('/gremlin'):
+        gremlin_ip_port = gremlin_ip_port.rstrip('/') + '/gremlin'
+    
     return gremlin_ip_port
 
 

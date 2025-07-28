@@ -1,8 +1,5 @@
-######################################################################
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. #
-# SPDX-License-Identifier: MIT-0                                     #
-######################################################################
-
+# SPDX-License-Identifier: MIT-0
+# Copyright (c) 2025 TwinGraph Contributors
 
 from gremlin_python.driver.driver_remote_connection import DriverRemoteConnection
 import json

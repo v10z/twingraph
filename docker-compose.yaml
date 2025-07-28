@@ -1,4 +1,3 @@
-version: "3.9"
 services:
 
   twingraph:
@@ -6,6 +5,7 @@ services:
       - tinkergraph-server
       - rabbitmq
       - redis-stack
+      - twingraph-api
     build: .
     image: twingraph:latest
     stdin_open: true # docker run -i
@@ -13,24 +13,55 @@ services:
     command: ["bash", "-c", "sudo chmod 777 /var/run/docker.sock; while true; do date; sleep 10; done"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${HOME}/.aws:/home/twingraph-user/.aws
+      - ${HOME:-/tmp}/.aws:/home/twingraph-user/.aws
+      - ./twingraph:/home/twingraph-user/twingraph:ro
+      - ./examples:/home/twingraph-user/examples:ro
+    environment:
+      - TWINGRAPH_GREMLIN_ENDPOINT=ws://tinkergraph-server:8182
+      - TWINGRAPH_DOCKER_ENV=1
 
   tinkergraph-server:
-    image: tinkerpop/gremlin-server:3.6.1
-  
-  tinkergraph-viz:
-    image: prabushitha/gremlin-visualizer:latest
+    image: tinkerpop/gremlin-server:3.7.2
     ports:
-      - 3000:3000
-      - 3001:3001
+      - 8182:8182
+
+  twingraph-api:
+    depends_on:
+      - tinkergraph-server
+    build: .
+    image: twingraph:latest
+    command: ["python", "-m", "twingraph.api.run_api"]
+    ports:
+      - 8000:8000
+    environment:
+      - TWINGRAPH_GREMLIN_ENDPOINT=ws://tinkergraph-server:8182
+      - TWINGRAPH_DOCKER_ENV=1
+      - TWINGRAPH_API_HOST=0.0.0.0
+      - TWINGRAPH_API_PORT=8000
+    volumes:
+      - ./twingraph:/home/twingraph-user/twingraph:ro
+
+  twingraph-ui:
+    build: 
+      context: ./twingraph-ui
+      dockerfile: Dockerfile.dev
+    ports:
+      - 4000:4000
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - twingraph-api
+    volumes:
+      - ./twingraph-ui/src:/app/src:ro
 
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:4-management
+    ports:
+      - 5672:5672
+      - 15672:15672
 
   redis-stack:
     image: redis/redis-stack:latest
     ports:
       - 6379:6379
       - 8001:8001
-
-    
